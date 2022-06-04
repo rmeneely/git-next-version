@@ -29,9 +29,10 @@ inputs:
     description: Defines the next version instead of calculating it
     default: ''
     required: false
-  set-safe-directory:
-    description: Add repository path as safe.directory for Git global config by running `git config --global --add safe.directory <path>`
-    default: true
+  set_next_version:
+    description: Create a version tag of NEXT_VERSION
+    default: 'true'
+    required: false
 outputs:
   image:
     description: 'LAST_VERSION=<last version> and NEXT_VERSION=<next version> which can be used to set environment variables'

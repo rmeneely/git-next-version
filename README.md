@@ -4,7 +4,7 @@ This GitHub Action determines the next version based on the last matching tag.
 
 ## Usage
 ```yaml
-    - uses: rmeneely/git-next-version@v1.0.3
+    - uses: rmeneely/git-next-version@v1.0.4
       with:
         # Tag pattern. The filter to use when searching for the LAST_VERSION tag
         # Optional
@@ -13,8 +13,8 @@ This GitHub Action determines the next version based on the last matching tag.
 
         # The version increment - major, minor, patch, none
         # Optional
-        # Default: minor
-        increment: 'minor'
+        # Default: patch
+        increment: 'patch'
 
         # A prefix to use on the NEXT_VERSION. If not specified the existing LAST_VERSION prefix will be used.
         # Optional
@@ -36,18 +36,19 @@ This GitHub Action determines the next version based on the last matching tag.
         # Default: ''
         next_version: ''
 
-        # Add repository path as safe.directory for Git global config by running:
-        # `git config --global --add safe.directory <path>`
-        # Required to allow action to execute git commands
-        # Default: true
-        set-safe-directory: ''
+        # Create a version tag of NEXT_VERSION
+        # Optional
+        # Default: 'true'
+        set_next_version: 'true'
 ```
 
 ## Example
 ```yaml
     # Sets LAST_VERSION environment variable to last matching tag
     # Sets NEXT_VERSION environment variable to the next increment
-    - uses: rmeneely/git-next-version@v1.0.3
+    - uses: rmeneely/git-next-version@v1.0.4
+      with:
+        increment: 'minor'
 ```
 
 ## Output
