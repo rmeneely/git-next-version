@@ -4,7 +4,7 @@ This GitHub Action determines the next version based on the last matching tag.
 
 ## Usage
 ```yaml
-    - uses: rmeneely/git-next-version@v1
+    - uses: rmeneely/git-next-version@v1.0.2
       with:
         # Tag pattern. The filter to use when searching for the LAST_VERSION tag
         # Optional
