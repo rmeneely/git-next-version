@@ -1,0 +1,37 @@
+name: 'Git Next Version'
+author: Rick Meneely <rick@meneely.com>
+branding:
+  icon: chevrons-right
+  color: purple
+description: Determine the next version based upon last git tag and provided increment
+inputs:
+  tag_pattern:
+    description: The tag pattern to match
+    default: 'v[0-9]*'
+    required: false
+  increment:
+    description: The semantic version increment - major, minor, patch, none
+    default: minor
+    required: false
+  new_prefix:
+    description: Sets new prefix for the next version
+    default: ''
+    required: false
+  new_suffix:
+    description: Sets new suffix for the next version
+    default: ''
+    required: false
+  last_version:
+    description: Defines the last version instead of searching for it
+    default: ''
+    required: false
+  next_version:
+    description: Defines the next version instead of calculating it
+    default: ''
+    required: false
+outputs:
+  image:
+    description: 'LAST_VERSION=<last version> and NEXT_VERSION=<next version> which can be used to set environment variables'
+runs:
+  using: docker
+  image: Dockerfile
