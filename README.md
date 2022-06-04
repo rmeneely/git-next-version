@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
-    - uses: xxx
+    - uses: rmeneely/git-next-version@v1
       with:
         tag_pattern: 'v[0-9]*' (optional)
         increment: 'minor' - options: major|minor|patch|none (optional)
