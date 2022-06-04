@@ -134,6 +134,16 @@ function get_next_version() { # Return the next increment from the last version
   echo "${prefix}${major}.${minor}.${patch}${suffix}"
 }
 
+function output_versions() {
+  if [ "${GITHUB_ENV}" !=  '' ]; then
+     echo "LAST_VERSION=${LAST_VERSION}" >> $GITHUB_ENV
+     echo "NEXT_VERSION=${NEXT_VERSION}" >> $GITHUB_ENV
+  else
+     echo "LAST_VERSION=${LAST_VERSION}"
+     echo "NEXT_VERSION=${NEXT_VERSION}"
+  fi
+}
+
 
 # Main
 
@@ -151,8 +161,8 @@ if [ "${NEXT_VERSION}" = '' ]; then
 fi
 
 
-echo "LAST_VERSION=${LAST_VERSION}"
-echo "NEXT_VERSION=${NEXT_VERSION}"
+# Output the versions
+output_versions
 
 exit $?
 
