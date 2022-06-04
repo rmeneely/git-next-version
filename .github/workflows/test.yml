@@ -5,6 +5,10 @@ jobs:
     runs-on: ubuntu-latest
     name: Test using ACT
     steps:
+#      - name: Checkout
+#        uses: actions/checkout@v3
+#        with:
+#          path: 'git-next-version'
       - name: Git Next Version
         uses: ./
         with:
