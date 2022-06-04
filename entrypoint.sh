@@ -143,6 +143,7 @@ function set_next_version() {
 
    if [ "${next_version}" != '' ]; then
       git tag "${next_version}"
+      git push --tags
    fi
 }
 
