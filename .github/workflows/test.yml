@@ -6,6 +6,6 @@ jobs:
     name: Test using ACT
     steps:
       - name: Git Next Version
-        uses: ./ # Uses an action in the root directory
+        uses: actions/checkout@v2
         with:
-          last_version: v1.0.0
+          path: "git-next-version"
