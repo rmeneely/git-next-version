@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
-    - uses: docker://ghcr.io/kciter/aws-ecr-action:latest
+    - uses: xxx
       with:
         tag_pattern: 'v[0-9]*' (optional)
         increment: 'minor' - options: major|minor|patch|none (optional)
