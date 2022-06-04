@@ -20,6 +20,12 @@ export REMOVE_SUFFIX=false # Do not remove suffix
 export LAST_VERSION="${INPUT_last_version:-${default_last_version}}"
 export NEXT_VERSION="${INPUT_next_version:-${default_next_version}}"
 
+# Add this git workspace as a safe directory
+# Required by GitHub Actions to enable this action to execute git commands
+if [ "${GITHUB_WORKSPACE}" !=  '' ]; then
+   git config --global --add safe.directory "$GITHUB_WORKSPACE"
+fi
+
 # Get command line arguments
 while getopts "t:i:p:s:l:n:PSh" option; do
   case $option in
