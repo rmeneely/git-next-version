@@ -13,6 +13,22 @@ inputs:
     description: The semantic version increment - major, minor, patch, none
     default: minor
     required: false
+  auto_increment:
+    description: Determine the next version based on commit messages
+    default: 'false'
+    required: false
+  auto_increment_major_version_pattern:
+    description: The commit message pattern to match major version commits
+    default: '*major*'
+    required: false
+  auto_increment_minor_version_pattern:
+    description: The commit message pattern to match minor version commits
+    default: '*minor*'
+    required: false
+  auto_increment_limit:
+    description: The highest level of auto increment allowed - major, minor, patch
+    default: 'minor'
+    required: false
   new_prefix:
     description: Sets new prefix for the next version
     default: ''

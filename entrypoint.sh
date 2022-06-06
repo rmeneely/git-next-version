@@ -5,22 +5,29 @@ Syntax='$program [-t <tag pattern>] [-i <increment>] [-p <new prefix> | -P] [-s 
 set -e
 
 # Defaults
-default_tag_pattern='v[0-9]*'
-default_increment='patch'
-default_new_prefix=''
-default_new_suffix=''
-default_last_version=''
-default_next_version=''
-default_set_next_version='true'
-export TAG_PATTERN="${INPUT_tag_pattern:-${default_tag_pattern}}"
-export INCREMENT="${INPUT_increment:-${default_increment}}"
-export NEW_PREFIX="${INPUT_new_prefix:-${default_new_prefix}}"
-export REMOVE_PREFIX='false' # Do not remove prefix
-export NEW_SUFFIX="${INPUT_new_suffix:-${default_new_suffix}}"
-export REMOVE_SUFFIX='false' # Do not remove suffix
-export LAST_VERSION="${INPUT_last_version:-${default_last_version}}"
-export NEXT_VERSION="${INPUT_next_version:-${default_next_version}}"
-export SET_NEXT_VERSION="${INPUT_set_next_version:-${default_set_next_version}}"
+#default_tag_pattern='v[0-9]*'
+#default_increment='patch'
+#default_new_prefix=''
+#default_new_suffix=''
+#default_last_version=''
+#default_next_version=''
+#default_set_next_version='true'
+
+env|grep 'INPUT_'|sort
+
+export TAG_PATTERN="${INPUT_tag_pattern:-'v[0-9]*'}"
+export INCREMENT="${INPUT_increment:-'patch'}"
+export AUTO_INCREMENT="${INPUT_auto_increment:-'false'}"
+export AUTO_INCREMENT_MAJOR_VERSION_PATTERN="${INPUT_auto_increment_major_pattern:-'*major*'}"
+export AUTO_INCREMENT_MINOR_VERSION_PATTERN="${INPUT_auto_increment_minor_pattern:-'*minor*'}"
+export AUTO_INCREMENT_LIMIT="${INPUT_auto_increment_limit:-'minor'}"
+export NEW_PREFIX="${INPUT_new_prefix:-''}"
+export REMOVE_PREFIX="${INPUT_remove_prefix:-'false'}" # Do not remove prefix
+export NEW_SUFFIX="${INPUT_new_suffix:-''}"
+export REMOVE_SUFFIX="${INPUT_remove_suffix:-'false'}" # Do not remove suffix
+export LAST_VERSION="${INPUT_last_version:-''}"
+export NEXT_VERSION="${INPUT_next_version:-''}"
+export SET_NEXT_VERSION="${INPUT_set_next_version:-'true'}"
 
 # Add this git workspace as a safe directory
 # Required by GitHub Actions to enable this action to execute git commands
@@ -138,6 +145,40 @@ function get_next_version() { # Return the next increment from the last version
   echo "${prefix}${major}.${minor}.${patch}${suffix}"
 }
 
+# Auto increment major version
+function auto_increment_major_version() {
+   pattern="${1:-${AUTO_INCREMENT_MAJOR_VERSION_PATTERN}}"
+   count=0
+   return $count
+}
+
+# Auto increment minor version
+function auto_increment_minor_version() {
+   pattern="${1:-${AUTO_INCREMENT_MINOR_VERSION_PATTERN}}"
+   count=0
+   return $count
+}
+
+# Auto increment version
+function auto_increment_version() {
+   last_version="${1:-${LAST_VERSION}}"
+   major_version_pattern="${2:-${AUTO_INCREMENT_MAJOR_VERSION_PATTERN}}"
+   minor_version_pattern="${3:-${AUTO_INCREMENT_MINOR_VERSION_PATTERN}}"
+   
+   count=`auto_increment_major_version "${major_version_pattern}"`
+   if [ $count -gt 0 ]; then
+      next_version=`get_next_version "${last_version}" 'major'`
+      return "${next_version}"
+   fi
+   count=`auto_increment_minor_version "${minor_version_pattern}"`
+   if [ $count -gt 0 ]; then
+      next_version=`get_next_version "${last_version}" 'minor'`
+      return "${next_version}"
+   fi
+   next_version=`get_next_version "${last_version}" 'patch'`
+   return "${next_version}"
+}
+
 function set_next_version() {
    next_version=${1:-''}
 
@@ -157,7 +198,6 @@ function output_versions() {
   fi
 }
 
-
 function main() { # main function
   # Get the last version 
   if [ "${LAST_VERSION}" = '' ]; then
@@ -169,19 +209,24 @@ function main() { # main function
   fi
 
   # Get the next version
-  if [ "${NEXT_VERSION}" = '' ]; then
-     export NEXT_VERSION=`get_next_version ${LAST_VERSION} "${INCREMENT}"`
-  fi
-  
-  # Set the next version
   if [ "${SET_NEXT_VERSION}" = 'true' ]; then
      set_next_version "${NEXT_VERSION}"
+  else
+    if [ "${AUTO_INCREMENT}" = 'true' ]; then
+       export NEXT_VERSION=`auto_increment_version "${LAST_VERSION}" "${AUTO_INCREMENT_MAJOR_VERSION_PATTERN}" "${AUTO_INCREMENT_MINOR_VERSION_PATTERN}"`
+    else 
+       export NEXT_VERSION=`get_next_version "${LAST_VERSION}" "${INCREMENT}"`
+    fi
   fi
+  
+ # # Set the next version
+ # if [ "${SET_NEXT_VERSION}" = 'true' ]; then
+ #    set_next_version "${NEXT_VERSION}"
+ # fi
   
   
   # Output the versions
   output_versions
-     
 }
 
 # Main
@@ -189,3 +234,4 @@ main
 
 exit $?
 
+# EOF: entrypoint.sh
