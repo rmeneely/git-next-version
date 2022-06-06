@@ -17,7 +17,7 @@ export NEW_SUFFIX="${INPUT_NEW_SUFFIX:-}"
 export REMOVE_SUFFIX="${INPUT_REMOVE_SUFFIX:-'false'}"
 export LAST_VERSION="${INPUT_LAST_VERSION:-}"
 export NEXT_VERSION="${INPUT_NEXT_VERSION:-}"
-export SET_NEXT_VERSION="${INPUT_SET_NEXT_VERSION:-'true'}"
+export SET_NEXT_VERSION="${INPUT_SET_NEXT_VERSION_TAG:-'true'}"
 export VERBOSE="${INPUT_VERBOSE:-'false'}"
 
 # Add this git workspace as a safe directory
@@ -62,7 +62,7 @@ while getopts "t:i:p:s:l:n:PSTVh" option; do
     n) # Next version
        NEXT_VERSION=$OPTARG ;;
     T) # Don't set next version
-       SET_NEXT_VERSION='false' ;;
+       SET_NEXT_VERSION_TAG='false' ;;
     V) # Verbose
        VERBOSE='true' ;;
     h) # Help
@@ -96,7 +96,7 @@ display_options() {
   echo "REMOVE_SUFFIX=$REMOVE_SUFFIX"
   echo "LAST_VERSION=$LAST_VERSION"
   echo "NEXT_VERSION=$NEXT_VERSION"
-  echo "SET_NEXT_VERSION=$SET_NEXT_VERSION"
+  echo "SET_NEXT_VERSION_TAG=$SET_NEXT_VERSION_TAG"
   echo ""
 
 }
@@ -203,7 +203,7 @@ function auto_increment_version() {
    return
 }
 
-function set_next_version() {
+function set_next_version_tag() {
    next_version=${1:-''}
 
    # Valid tag
@@ -245,14 +245,13 @@ function main() { # main function
   #if [ "${VERBOSE}" = 'true' ]; then echo "LAST_VERSION: $LAST_VERSION" ; fi
 
   # Get the next version
-  if [ "${SET_NEXT_VERSION}" = 'true' ]; then
-     set_next_version "${NEXT_VERSION}"
-  else
-    if [ "${AUTO_INCREMENT}" = 'true' ]; then
-       export NEXT_VERSION=`auto_increment_version "${LAST_VERSION}" "${AUTO_INCREMENT_MAJOR_VERSION_PATTERN}" "${AUTO_INCREMENT_MINOR_VERSION_PATTERN}" "${AUTO_INCREMENT_LIMIT}"`
-    else 
-       export NEXT_VERSION=`get_next_version "${LAST_VERSION}" "${INCREMENT}"`
-    fi
+  if [ "${AUTO_INCREMENT}" = 'true' ]; then
+      export NEXT_VERSION=`auto_increment_version "${LAST_VERSION}" "${AUTO_INCREMENT_MAJOR_VERSION_PATTERN}" "${AUTO_INCREMENT_MINOR_VERSION_PATTERN}" "${AUTO_INCREMENT_LIMIT}"`
+  else 
+      export NEXT_VERSION=`get_next_version "${LAST_VERSION}" "${INCREMENT}"`
+  fi
+  if [ "${SET_NEXT_VERSION_TAG}" = 'true' ]; then
+     set_next_version_tag "${NEXT_VERSION}"
   fi
   #if [ "${VERBOSE}" = 'true' ]; then echo "NEXT_VERSION: $NEXT_VERSION" ; fi
   

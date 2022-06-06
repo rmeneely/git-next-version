@@ -53,7 +53,7 @@ inputs:
     description: Defines the next version instead of calculating it
     default: ''
     required: false
-  set_next_version:
+  set_next_version_tag:
     description: Create a version tag of NEXT_VERSION
     default: 'true'
     required: false

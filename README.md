@@ -4,7 +4,7 @@ This GitHub Action determines the next version based on the last matching tag.
 
 ## Usage
 ```yaml
-    - uses: rmeneely/git-next-version@v1.0.10
+    - uses: rmeneely/git-next-version@v1.0.11
       with:
         # Tag pattern. The filter to use when searching for the LAST_VERSION tag
         # Optional
@@ -74,14 +74,14 @@ This GitHub Action determines the next version based on the last matching tag.
         # Create a version tag of NEXT_VERSION
         # Optional
         # Default: 'true'
-        set_next_version: 'true'
+        set_next_version_tag: 'true'
 ```
 
 ## Example
 ```yaml
     # Sets LAST_VERSION environment variable to last matching tag
     # Sets NEXT_VERSION environment variable to the next minor increment
-    - uses: rmeneely/git-next-version@v1.0.10
+    - uses: rmeneely/git-next-version@v1.0.11
       with:
         increment: 'minor'
 ```
@@ -89,7 +89,7 @@ This GitHub Action determines the next version based on the last matching tag.
 ```yaml
     # Sets LAST_VERSION environment variable to last matching tag
     # Sets NEXT_VERSION environment variable to the next increment based upon commit messages. Default matches 'major|breaking|incompatible' for a major change, and matching 'minor|feature' for a minor change.
-    - uses: rmeneely/git-next-version@v1.0.10
+    - uses: rmeneely/git-next-version@v1.0.11
       with:
         auto_increment: 'true'
 ```
