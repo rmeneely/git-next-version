@@ -1,23 +1,24 @@
-#!/bin/bash 
+#!/bin/bash
 # Description: Utility to get the last version tag and calculate the next version
 program=`basename $0`
-Syntax='$program [-t <tag pattern>] [-i <increment>] [-p <new prefix> | -P] [-s <new suffix> | -S] [-l <last version>] [-n <next version>] [-T]'
+Syntax='$program [-t <tag pattern>] [-i <increment>] [-p <new prefix> | -P] [-s <new suffix> | -S] [-l <last version>] [-n <next version>] [-T] [-V]'
 set -e
 
 # Defaults
 export TAG_PATTERN="${INPUT_TAG_PATTERN:-'v[0-9]*.[0-9]*.[0-9]*'}"
 export INCREMENT="${INPUT_INCREMENT:-'patch'}"
 export AUTO_INCREMENT="${INPUT_AUTO_INCREMENT:-'false'}"
-export AUTO_INCREMENT_MAJOR_VERSION_PATTERN="${INPUT_AUTO_INCREMENT_MAJOR_VERSION_PATTERN:-'*major*'}"
-export AUTO_INCREMENT_MINOR_VERSION_PATTERN="${INPUT_AUTO_INCREMENT_MINOR_VERSION_PATTERN:-'*minor*'}"
+export AUTO_INCREMENT_MAJOR_VERSION_PATTERN="${INPUT_AUTO_INCREMENT_MAJOR_VERSION_PATTERN:-'major|breaking|incompatible'}"
+export AUTO_INCREMENT_MINOR_VERSION_PATTERN="${INPUT_AUTO_INCREMENT_MINOR_VERSION_PATTERN:-'minor|feature'}"
 export AUTO_INCREMENT_LIMIT="${INPUT_AUTO_INCREMENT_LIMIT:-'minor'}"
-export NEW_PREFIX="${INPUT_NEW_PREFIX:-''}"
+export NEW_PREFIX="${INPUT_NEW_PREFIX:-}"
 export REMOVE_PREFIX="${INPUT_REMOVE_PREFIX:-'false'}"
-export NEW_SUFFIX="${INPUT_NEW_SUFFIX:-''}"
+export NEW_SUFFIX="${INPUT_NEW_SUFFIX:-}"
 export REMOVE_SUFFIX="${INPUT_REMOVE_SUFFIX:-'false'}"
-export LAST_VERSION="${INPUT_LAST_VERSION:-''}"
-export NEXT_VERSION="${INPUT_NEXT_VERSION:-''}"
+export LAST_VERSION="${INPUT_LAST_VERSION:-}"
+export NEXT_VERSION="${INPUT_NEXT_VERSION:-}"
 export SET_NEXT_VERSION="${INPUT_SET_NEXT_VERSION:-'true'}"
+export VERBOSE='false'
 
 # Add this git workspace as a safe directory
 # Required by GitHub Actions to enable this action to execute git commands
@@ -26,7 +27,7 @@ if [ "${GITHUB_WORKSPACE}" !=  '' ]; then
 fi
 
 # Get command line arguments
-while getopts "t:i:p:s:l:n:PSTh" option; do
+while getopts "t:i:p:s:l:n:PSTVh" option; do
   case $option in
     t) # Tag pattern
        TAG_PATTERN=$OPTARG ;;
@@ -62,6 +63,8 @@ while getopts "t:i:p:s:l:n:PSTh" option; do
        NEXT_VERSION=$OPTARG ;;
     T) # Don't set next version
        SET_NEXT_VERSION='false' ;;
+    V) # Verbose
+       VERBOSE='true' ;;
     h) # Help
        echo "Syntax: ${Syntax}"
        echo "Defaults:"
@@ -80,6 +83,24 @@ while getopts "t:i:p:s:l:n:PSTh" option; do
   esac
 done
 
+display_options() {
+  echo "TAG_PATTERN=$TAG_PATTERN"
+  echo "TAG_PATTERN=$INCREMENT"
+  echo "AUTO_INCREMENT=$AUTO_INCREMENT"
+  echo "AUTO_INCREMENT_MAJOR_VERSION_PATTERN=$AUTO_INCREMENT_MAJOR_VERSION_PATTERN"
+  echo "AUTO_INCREMENT_MINOR_VERSION_PATTERN=$AUTO_INCREMENT_MINOR_VERSION_PATTERN"
+  echo "AUTO_INCREMENT_LIMIT=$AUTO_INCREMENT_LIMIT"
+  echo "REMOVE_PREFIX=INPUT_NEW_PREFIX=$NEW_PREFIX"
+  echo "REMOVE_PREFIX=$REMOVE_PREFIX"
+  echo "NEW_SUFFIX=$NEW_SUFFIX"
+  echo "REMOVE_SUFFIX=$REMOVE_SUFFIX"
+  echo "LAST_VERSION=$LAST_VERSION"
+  echo "NEXT_VERSION=$NEXT_VERSION"
+  echo "SET_NEXT_VERSION=$SET_NEXT_VERSION"
+  echo ""
+
+}
+
 function get_last_version() { # Get last version tag
   default_pattern='v[0-9]*'
   pattern="${1:-${default_pattern}}"
@@ -88,7 +109,6 @@ function get_last_version() { # Get last version tag
 
 function get_next_version() { # Return the next increment from the last version
   last_version=$1
-  default_increment=patch
   increment="${2:-${INCREMENT}}"
   increment=`echo "${increment}" | tr '[:upper:]' '[:lower:]'`
 
@@ -135,12 +155,14 @@ function get_next_version() { # Return the next increment from the last version
   echo "${prefix}${major}.${minor}.${patch}${suffix}"
 }
 
-# Auto increment count
+# Commit pattern count
 function commit_pattern_count() {
    last_version=$1
    pattern=$2
-   count=`git log --pretty=oneline "${last_version}..HEAD" |  | sed 's/[a-zA-Z0-9]* //' | egrep -i "${pattern}" | wc -l`
-   return $count
+
+   # Determine the number of matching commits
+   count=`git log --pretty=oneline "${last_version}..HEAD" | sed 's/[a-zA-Z0-9]* //' | egrep -iwe "${pattern}" | wc -l`
+   echo $count
 }
 
 # Auto increment version
@@ -148,33 +170,48 @@ function auto_increment_version() {
    last_version="${1:-${LAST_VERSION}}"
    major_version_pattern="${2:-${AUTO_INCREMENT_MAJOR_VERSION_PATTERN}}"
    minor_version_pattern="${3:-${AUTO_INCREMENT_MINOR_VERSION_PATTERN}}"
+   auto_increment_limit="${4:-${AUTO_INCREMENT_LIMIT}}"
    
    # Get count of matching commits
    major_count=`commit_pattern_count "${last_version}" "${major_version_pattern}"`
    minor_count=`commit_pattern_count "${last_version}" "${minor_version_pattern}"`
 
    # Major
-   if [ $major_count -gt 0  && "${auto_increment_limit}" = 'major' ]; then
-      next_version=`get_next_version "${last_version}" 'major'`
-      return "${next_version}"
+   if [ $major_count -gt 0 ]; then
+      if [ "${auto_increment_limit}" = 'major' ]; then
+         next_version=`get_next_version "${last_version}" 'major'`
+         echo "${next_version}"
+         return
+      fi
    fi
 
    # Minor
-   count=$((${major_count} + ${minor_count}))
+   count=$(($major_count + $minor_count))
    if [ $count -gt 0 ]; then
-      if [ "${auto_increment_limit}" = "major" || "${auto_increment_limit}" = "minor" ]; then
-         next_version=`get_next_version "${last_version}" 'minor'`
-         return "${next_version}"
-      fi
+      case "${auto_increment_limit}" in # Check increment limit
+        'major'|'minor')
+           next_version=`get_next_version "${last_version}" 'minor'`
+           echo "${next_version}"
+           return
+         ;;
+      esac
    fi
 
    # Patch
    next_version=`get_next_version "${last_version}" 'patch'`
-   return "${next_version}"
+   echo "${next_version}"
+   return
 }
 
 function set_next_version() {
    next_version=${1:-''}
+
+   # Valid tag
+   valid=`echo ${next_version} | egrep -ice '^[a-zA-Z0-9]'`
+   if [ $valid -eq 0 ]; then
+      echo "Error: Invalid version tag: ${next_version}" >&2
+      exit 1
+   fi
 
    if [ "${next_version}" != '' ]; then
       git tag "${next_version}"
@@ -201,23 +238,26 @@ function main() { # main function
      echo "Error: last version not found" >&2
      exit 1
   fi
+  #if [ "${VERBOSE}" = 'true' ]; then echo "LAST_VERSION: $LAST_VERSION" ; fi
 
   # Get the next version
   if [ "${SET_NEXT_VERSION}" = 'true' ]; then
      set_next_version "${NEXT_VERSION}"
   else
     if [ "${AUTO_INCREMENT}" = 'true' ]; then
-       export NEXT_VERSION=`auto_increment_version "${LAST_VERSION}" "${AUTO_INCREMENT_MAJOR_VERSION_PATTERN}" "${AUTO_INCREMENT_MINOR_VERSION_PATTERN}"`
+       export NEXT_VERSION=`auto_increment_version "${LAST_VERSION}" "${AUTO_INCREMENT_MAJOR_VERSION_PATTERN}" "${AUTO_INCREMENT_MINOR_VERSION_PATTERN}" "${AUTO_INCREMENT_LIMIT}"`
     else 
        export NEXT_VERSION=`get_next_version "${LAST_VERSION}" "${INCREMENT}"`
     fi
   fi
+  #if [ "${VERBOSE}" = 'true' ]; then echo "NEXT_VERSION: $NEXT_VERSION" ; fi
   
   # Output the versions
   output_versions
 }
 
 # Main
+#if [ "${VERBOSE}" = 'true' ]; then display_options ; fi
 main
 
 exit $?

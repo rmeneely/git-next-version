@@ -4,7 +4,7 @@ This GitHub Action determines the next version based on the last matching tag.
 
 ## Usage
 ```yaml
-    - uses: rmeneely/git-next-version@v1.0.8
+    - uses: rmeneely/git-next-version@v1.0.9
       with:
         # Tag pattern. The filter to use when searching for the LAST_VERSION tag
         # Optional
@@ -26,12 +26,12 @@ This GitHub Action determines the next version based on the last matching tag.
         # Defines a pattern for matching major version commit
         # Optional
         # Default: '*major*'
-        auto_increment_major_version_pattern: '*major*'
+        auto_increment_major_version_pattern: 'major|breaking|incompatible'
 
         # Defines a pattern for matching minor version commit
         # Optional
         # Default: '*minor*'
-        auto_increment_minor_version_pattern: '*minor*'
+        auto_increment_minor_version_pattern: 'minor|feature'
 
         # Defines an auto version increment limit commit
         # If a major version commit is matched, but the increment
@@ -80,10 +80,18 @@ This GitHub Action determines the next version based on the last matching tag.
 ## Example
 ```yaml
     # Sets LAST_VERSION environment variable to last matching tag
-    # Sets NEXT_VERSION environment variable to the next increment
-    - uses: rmeneely/git-next-version@v1.0.8
+    # Sets NEXT_VERSION environment variable to the next minor increment
+    - uses: rmeneely/git-next-version@v1.0.9
       with:
         increment: 'minor'
+```
+
+```yaml
+    # Sets LAST_VERSION environment variable to last matching tag
+    # Sets NEXT_VERSION environment variable to the next increment based upon commit messages. Default matches 'major|breaking|incompatible' for a major change, and matching 'minor|feature' for a minor change.
+    - uses: rmeneely/git-next-version@v1.0.9
+      with:
+        auto_increment: 'true'
 ```
 
 ## Output

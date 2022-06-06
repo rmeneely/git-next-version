@@ -19,11 +19,11 @@ inputs:
     required: false
   auto_increment_major_version_pattern:
     description: The commit message pattern to match major version commits
-    default: '*major*'
+    default: 'major|breaking|incompatible'
     required: false
   auto_increment_minor_version_pattern:
     description: The commit message pattern to match minor version commits
-    default: '*minor*'
+    default: 'minor|feature'
     required: false
   auto_increment_limit:
     description: The highest level of auto increment allowed - major, minor, patch
