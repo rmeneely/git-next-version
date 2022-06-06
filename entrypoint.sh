@@ -161,7 +161,7 @@ function auto_increment_version() {
 
    # Minor
    count=$((${major_count} + ${minor_count}))
-   if [ $count -gt 0 ]
+   if [ $count -gt 0 ]; then
       if [ "${auto_increment_limit}" = "major" || "${auto_increment_limit}" = "minor" ]; then
          next_version=`get_next_version "${last_version}" 'minor'`
          return "${next_version}"
