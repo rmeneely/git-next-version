@@ -85,7 +85,7 @@ done
 
 display_options() {
   echo "TAG_PATTERN=$TAG_PATTERN"
-  echo "TAG_PATTERN=$INCREMENT"
+  echo "INCREMENT=$INCREMENT"
   echo "AUTO_INCREMENT=$AUTO_INCREMENT"
   echo "AUTO_INCREMENT_MAJOR_VERSION_PATTERN=$AUTO_INCREMENT_MAJOR_VERSION_PATTERN"
   echo "AUTO_INCREMENT_MINOR_VERSION_PATTERN=$AUTO_INCREMENT_MINOR_VERSION_PATTERN"
@@ -98,17 +98,15 @@ display_options() {
   echo "NEXT_VERSION=$NEXT_VERSION"
   echo "SET_NEXT_VERSION_TAG=$SET_NEXT_VERSION_TAG"
   echo ""
-
 }
 
 function get_last_version() { # Get last version tag
-  default_pattern='v[0-9]*'
-  pattern="${1:-${default_pattern}}"
+  pattern="${1:-${TAG_PATTERN}}"
   git tag --sort=committerdate --list "${pattern}" | tail -1
 }
 
 function get_next_version() { # Return the next increment from the last version
-  last_version=$1
+  last_version="${1:-${LAST_VERSION}}"
   increment="${2:-${INCREMENT}}"
   increment=`echo "${increment}" | tr '[:upper:]' '[:lower:]'`
 
@@ -172,7 +170,7 @@ function auto_increment_version() {
    minor_version_pattern="${3:-${AUTO_INCREMENT_MINOR_VERSION_PATTERN}}"
    auto_increment_limit="${4:-${AUTO_INCREMENT_LIMIT}}"
    
-   # Get count of matching commits
+   # Get count of matching commit types
    major_count=`commit_pattern_count "${last_version}" "${major_version_pattern}"`
    minor_count=`commit_pattern_count "${last_version}" "${minor_version_pattern}"`
 
@@ -204,7 +202,7 @@ function auto_increment_version() {
 }
 
 function set_next_version_tag() {
-   next_version=${1:-''}
+   next_version="${1:-${NEXT_VERSION}}"
 
    # Valid tag
    valid=`echo ${next_version} | egrep -ice '^[a-zA-Z0-9]'`
@@ -239,16 +237,18 @@ function main() { # main function
      export LAST_VERSION=`get_last_version "${TAG_PATTERN}"`
   fi
   if [ "${LAST_VERSION}" = '' ]; then
-     echo "Error: last version not found" >&2
+     echo "Error: last version matching pattern ${TAG_PATTERN} not found" >&2
      exit 1
   fi
   #if [ "${VERBOSE}" = 'true' ]; then echo "LAST_VERSION: $LAST_VERSION" ; fi
 
   # Get the next version
-  if [ "${AUTO_INCREMENT}" = 'true' ]; then
-      export NEXT_VERSION=`auto_increment_version "${LAST_VERSION}" "${AUTO_INCREMENT_MAJOR_VERSION_PATTERN}" "${AUTO_INCREMENT_MINOR_VERSION_PATTERN}" "${AUTO_INCREMENT_LIMIT}"`
-  else 
-      export NEXT_VERSION=`get_next_version "${LAST_VERSION}" "${INCREMENT}"`
+  if [ "${NEXT_VERSION}" = '' ]; then
+     if [ "${AUTO_INCREMENT}" = 'true' ]; then # Determine next version based on commit messages
+        export NEXT_VERSION=`auto_increment_version "${LAST_VERSION}" "${AUTO_INCREMENT_MAJOR_VERSION_PATTERN}" "${AUTO_INCREMENT_MINOR_VERSION_PATTERN}" "${AUTO_INCREMENT_LIMIT}"`
+     else # Determine next version from increment value
+        export NEXT_VERSION=`get_next_version "${LAST_VERSION}" "${INCREMENT}"`
+     fi
   fi
   if [ "${SET_NEXT_VERSION_TAG}" = 'true' ]; then
      set_next_version_tag "${NEXT_VERSION}"
@@ -260,7 +260,6 @@ function main() { # main function
 }
 
 # Main
-#if [ "${VERBOSE}" = 'true' ]; then display_options ; fi
 main
 
 exit $?
