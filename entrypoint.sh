@@ -1,4 +1,4 @@
-#!/bin/bash -x
+#!/bin/bash
 # Description: Utility to get the last version tag and calculate the next version
 program=`basename $0`
 Syntax='$program [-t <tag pattern>] [-i <increment>] [-p <new prefix> | -P] [-s <new suffix> | -S] [-l <last version>] [-n <next version>] [-T] [-V]'
