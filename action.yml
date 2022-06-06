@@ -57,6 +57,10 @@ inputs:
     description: Create a version tag of NEXT_VERSION
     default: 'true'
     required: false
+  verbose:
+    description: Turns on verbose output
+    default: 'false'
+    required: false
 outputs:
   image:
     description: 'LAST_VERSION=<last version> and NEXT_VERSION=<next version> which can be used to set environment variables'

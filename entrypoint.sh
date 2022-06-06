@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -x
 # Description: Utility to get the last version tag and calculate the next version
 program=`basename $0`
 Syntax='$program [-t <tag pattern>] [-i <increment>] [-p <new prefix> | -P] [-s <new suffix> | -S] [-l <last version>] [-n <next version>] [-T] [-V]'
@@ -18,7 +18,7 @@ export REMOVE_SUFFIX="${INPUT_REMOVE_SUFFIX:-'false'}"
 export LAST_VERSION="${INPUT_LAST_VERSION:-}"
 export NEXT_VERSION="${INPUT_NEXT_VERSION:-}"
 export SET_NEXT_VERSION="${INPUT_SET_NEXT_VERSION:-'true'}"
-export VERBOSE='false'
+export VERBOSE="${INPUT_VERBOSE:-'false'}"
 
 # Add this git workspace as a safe directory
 # Required by GitHub Actions to enable this action to execute git commands
@@ -230,6 +230,10 @@ function output_versions() {
 }
 
 function main() { # main function
+  if [ "${VERBOSE}" = 'true' ]; then
+     display_options
+  fi
+
   # Get the last version 
   if [ "${LAST_VERSION}" = '' ]; then
      export LAST_VERSION=`get_last_version "${TAG_PATTERN}"`
