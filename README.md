@@ -1,10 +1,14 @@
 # git-next-version
-This GitHub Action determines the next version based on the last matching tag.
+This GitHub Action determines the next version based on the last matching tag. It will perform a search for the most recent git tag matching *tag_pattern* setting the ${{ env.LAST_VERSION }} environment variable. 
+
+It will then increment the LAST_VERSION by either a specified INCREMENT or by matching git commit messsages if *auto_increment* is set to 'true', setting the ${{ env.NEXT_VERSION }} environment variable.
+
+The *set_next_version_tag* if set to 'false' will still set the NEXT_VERSION variable, but will not create a matching git tag. Additional options can override the default behavior as specified below.
 
 
 ## Usage
 ```yaml
-    - uses: rmeneely/git-next-version@v1.0.12
+    - uses: rmeneely/git-next-version@v1
       with:
         # Tag pattern. The filter to use when searching for the LAST_VERSION tag
         # Optional
@@ -77,21 +81,59 @@ This GitHub Action determines the next version based on the last matching tag.
         set_next_version_tag: 'true'
 ```
 
-## Example
+## Examples
+```yaml
+    # Sets LAST_VERSION environment variable to last matching tag
+    # Sets NEXT_VERSION environment variable to the next default increment (patch)
+    # Example: v1.2.3 -> v1.2.4
+    - uses: rmeneely/git-next-version@v1
+```
+
 ```yaml
     # Sets LAST_VERSION environment variable to last matching tag
     # Sets NEXT_VERSION environment variable to the next minor increment
-    - uses: rmeneely/git-next-version@v1.0.12
+    # Example: v1.2.3 -> v1.3.0
+    - uses: rmeneely/git-next-version@v1
       with:
         increment: 'minor'
 ```
 
 ```yaml
     # Sets LAST_VERSION environment variable to last matching tag
-    # Sets NEXT_VERSION environment variable to the next increment based upon commit messages. Default matches 'major|breaking|incompatible' for a major change, and matching 'minor|feature' for a minor change.
-    - uses: rmeneely/git-next-version@v1.0.12
+    # Sets NEXT_VERSION environment variable to the next major increment
+    # Example: v1.2.3 -> v2.0.0
+    - uses: rmeneely/git-next-version@v1
+      with:
+        increment: 'major'
+```
+
+```yaml
+    # Sets LAST_VERSION environment variable to last matching tag
+    # Sets NEXT_VERSION environment variable to the next increment based upon commit messages. Default matches 'major|breaking|incompatible' for a major change, and matching 'minor|feature' for a minor change. If neither matching major or minor commit message changes are found then it will perform a patch increment.
+    # Note that the *auto_increment_limit* option can limit the increment. For example if *auto_increment_limit='minor'* then only a minor increment will be performed if matching major (or minor) commit messages are found.
+    - uses: rmeneely/git-next-version@v1
       with:
         auto_increment: 'true'
+```
+
+```yaml
+    # Sets LAST_VERSION environment variable to last matching tag
+    # Sets NEXT_VERSION environment variable to the next increment based upon commit messages. Default matches 'major|breaking|incompatible' for a major change, and matching 'minor|feature' for a minor change.
+    # Sets NEXT_VERSION suffix to be '-rc' so v1.2.3 would become v1.2.3-rc
+    - uses: rmeneely/git-next-version@v1
+      with:
+        auto_increment: 'true'
+        new_suffix: '-rc'
+```
+
+```yaml
+    # Sets LAST_VERSION environment variable 'v1.2.3' instead of searching for a matching the version tag
+    # Sets NEXT_VERSION environment variable to the next default increment (patch)
+    # Does not create a NEXT_VERSION git tag
+    - uses: rmeneely/git-next-version@v1
+      with:
+        last_version: 'v1.2.3'
+        set_next_version_tag: 'false'
 ```
 
 ## Output
