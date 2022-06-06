@@ -7,7 +7,7 @@ description: Determine the next version based upon last git tag and provided inc
 inputs:
   tag_pattern:
     description: The tag pattern to match
-    default: 'v[0-9]*'
+    default: 'v[0-9]*.[0-9]*.[0-9]*'
     required: false
   increment:
     description: The semantic version increment - major, minor, patch, none
@@ -33,9 +33,17 @@ inputs:
     description: Sets new prefix for the next version
     default: ''
     required: false
+  remove_prefix:
+    description: Removes last version prefix for the next version
+    default: 'false'
+    required: false
   new_suffix:
     description: Sets new suffix for the next version
     default: ''
+    required: false
+  remove_suffix:
+    description: Removes last version suffix for the next version
+    default: 'false'
     required: false
   last_version:
     description: Defines the last version instead of searching for it

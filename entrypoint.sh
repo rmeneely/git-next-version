@@ -5,29 +5,19 @@ Syntax='$program [-t <tag pattern>] [-i <increment>] [-p <new prefix> | -P] [-s 
 set -e
 
 # Defaults
-#default_tag_pattern='v[0-9]*'
-#default_increment='patch'
-#default_new_prefix=''
-#default_new_suffix=''
-#default_last_version=''
-#default_next_version=''
-#default_set_next_version='true'
-
-env|grep 'INPUT_'|sort
-
-export TAG_PATTERN="${INPUT_tag_pattern:-'v[0-9]*'}"
-export INCREMENT="${INPUT_increment:-'patch'}"
-export AUTO_INCREMENT="${INPUT_auto_increment:-'false'}"
-export AUTO_INCREMENT_MAJOR_VERSION_PATTERN="${INPUT_auto_increment_major_pattern:-'*major*'}"
-export AUTO_INCREMENT_MINOR_VERSION_PATTERN="${INPUT_auto_increment_minor_pattern:-'*minor*'}"
-export AUTO_INCREMENT_LIMIT="${INPUT_auto_increment_limit:-'minor'}"
-export NEW_PREFIX="${INPUT_new_prefix:-''}"
-export REMOVE_PREFIX="${INPUT_remove_prefix:-'false'}" # Do not remove prefix
-export NEW_SUFFIX="${INPUT_new_suffix:-''}"
-export REMOVE_SUFFIX="${INPUT_remove_suffix:-'false'}" # Do not remove suffix
-export LAST_VERSION="${INPUT_last_version:-''}"
-export NEXT_VERSION="${INPUT_next_version:-''}"
-export SET_NEXT_VERSION="${INPUT_set_next_version:-'true'}"
+export TAG_PATTERN="${INPUT_TAG_PATTERN:-'v[0-9]*.[0-9]*.[0-9]*'}"
+export INCREMENT="${INPUT_INCREMENT:-'patch'}"
+export AUTO_INCREMENT="${INPUT_AUTO_INCREMENT:-'false'}"
+export AUTO_INCREMENT_MAJOR_VERSION_PATTERN="${INPUT_AUTO_INCREMENT_MAJOR_VERSION_PATTERN:-'*major*'}"
+export AUTO_INCREMENT_MINOR_VERSION_PATTERN="${INPUT_AUTO_INCREMENT_MINOR_VERSION_PATTERN:-'*minor*'}"
+export AUTO_INCREMENT_LIMIT="${INPUT_AUTO_INCREMENT_LIMIT:-'minor'}"
+export NEW_PREFIX="${INPUT_NEW_PREFIX:-''}"
+export REMOVE_PREFIX="${INPUT_REMOVE_PREFIX:-'false'}"
+export NEW_SUFFIX="${INPUT_NEW_SUFFIX:-''}"
+export REMOVE_SUFFIX="${INPUT_REMOVE_SUFFIX:-'false'}"
+export LAST_VERSION="${INPUT_LAST_VERSION:-''}"
+export NEXT_VERSION="${INPUT_NEXT_VERSION:-''}"
+export SET_NEXT_VERSION="${INPUT_SET_NEXT_VERSION:-'true'}"
 
 # Add this git workspace as a safe directory
 # Required by GitHub Actions to enable this action to execute git commands
@@ -99,7 +89,7 @@ function get_last_version() { # Get last version tag
 function get_next_version() { # Return the next increment from the last version
   last_version=$1
   default_increment=patch
-  increment="${2:-${default_increment}}"
+  increment="${2:-${INCREMENT}}"
   increment=`echo "${increment}" | tr '[:upper:]' '[:lower:]'`
 
   # Major and Prefix
@@ -129,15 +119,15 @@ function get_next_version() { # Return the next increment from the last version
 
   # Increment
   case "${increment}" in
-    major) let major+=1
+    'major') let major+=1
            minor=0
            patch=0
            ;;
-    minor) let minor+=1 
+    'minor') let minor+=1 
            patch=0
            ;;
-    patch) let patch+=1 ;;
-    none) ;; # No increment
+    'patch') let patch+=1 ;;
+    'none') ;; # No increment
     *) echo "Error: invalid increment ${increment}" >&2
        exit 1
        ;;
@@ -145,17 +135,11 @@ function get_next_version() { # Return the next increment from the last version
   echo "${prefix}${major}.${minor}.${patch}${suffix}"
 }
 
-# Auto increment major version
-function auto_increment_major_version() {
-   pattern="${1:-${AUTO_INCREMENT_MAJOR_VERSION_PATTERN}}"
-   count=0
-   return $count
-}
-
-# Auto increment minor version
-function auto_increment_minor_version() {
-   pattern="${1:-${AUTO_INCREMENT_MINOR_VERSION_PATTERN}}"
-   count=0
+# Auto increment count
+function commit_pattern_count() {
+   last_version=$1
+   pattern=$2
+   count=`git log --pretty=oneline "${last_version}..HEAD" |  | sed 's/[a-zA-Z0-9]* //' | egrep -i "${pattern}" | wc -l`
    return $count
 }
 
@@ -165,16 +149,26 @@ function auto_increment_version() {
    major_version_pattern="${2:-${AUTO_INCREMENT_MAJOR_VERSION_PATTERN}}"
    minor_version_pattern="${3:-${AUTO_INCREMENT_MINOR_VERSION_PATTERN}}"
    
-   count=`auto_increment_major_version "${major_version_pattern}"`
-   if [ $count -gt 0 ]; then
+   # Get count of matching commits
+   major_count=`commit_pattern_count "${last_version}" "${major_version_pattern}"`
+   minor_count=`commit_pattern_count "${last_version}" "${minor_version_pattern}"`
+
+   # Major
+   if [ $major_count -gt 0  && "${auto_increment_limit}" = 'major' ]; then
       next_version=`get_next_version "${last_version}" 'major'`
       return "${next_version}"
    fi
-   count=`auto_increment_minor_version "${minor_version_pattern}"`
-   if [ $count -gt 0 ]; then
-      next_version=`get_next_version "${last_version}" 'minor'`
-      return "${next_version}"
+
+   # Minor
+   count=$((${major_count} + ${minor_count}))
+   if [ $count -gt 0 ]
+      if [ "${auto_increment_limit}" = "major" || "${auto_increment_limit}" = "minor" ]; then
+         next_version=`get_next_version "${last_version}" 'minor'`
+         return "${next_version}"
+      fi
    fi
+
+   # Patch
    next_version=`get_next_version "${last_version}" 'patch'`
    return "${next_version}"
 }
@@ -218,12 +212,6 @@ function main() { # main function
        export NEXT_VERSION=`get_next_version "${LAST_VERSION}" "${INCREMENT}"`
     fi
   fi
-  
- # # Set the next version
- # if [ "${SET_NEXT_VERSION}" = 'true' ]; then
- #    set_next_version "${NEXT_VERSION}"
- # fi
-  
   
   # Output the versions
   output_versions

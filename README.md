@@ -4,17 +4,42 @@ This GitHub Action determines the next version based on the last matching tag.
 
 ## Usage
 ```yaml
-    - uses: rmeneely/git-next-version@v1.0.5
+    - uses: rmeneely/git-next-version@v1.0.7
       with:
         # Tag pattern. The filter to use when searching for the LAST_VERSION tag
         # Optional
-        # Default: 'v[0-9]*'
-        tag_pattern: 'v[0-9]*'
+        # Default: 'v[0-9]*.[0-9]*.[0-9]*'
+        tag_pattern: 'v[0-9]*.[0-9]*.[0-9]*'
 
         # The version increment - major, minor, patch, none
         # Optional
         # Default: patch
         increment: 'patch'
+
+        # Auto increment - true, false
+        # Determines NEXT_VERSION based on matching commit messages
+        # defined by auto_increment_major_version_pattern and auto_increment_minor_version_pattern options
+        # Optional
+        # Default: 'false'
+        auto_increment: 'false'
+
+        # Defines a pattern for matching major version commit
+        # Optional
+        # Default: '*major*'
+        auto_increment_major_version_pattern: '*major*'
+
+        # Defines a pattern for matching minor version commit
+        # Optional
+        # Default: '*minor*'
+        auto_increment_minor_version_pattern: '*minor*'
+
+        # Defines an auto version increment limit commit
+        # If a major version commit is matched, but the increment
+        # limit is set to 'minor' then NEXT_VERSION will be a 
+        # minor version increment instead of a major version increment.
+        # Optional
+        # Default: 'minor'
+        auto_increment_minor_version_pattern: 'minor'
 
         # A prefix to use on the NEXT_VERSION. If not specified the existing LAST_VERSION prefix will be used.
         # Optional
@@ -25,6 +50,16 @@ This GitHub Action determines the next version based on the last matching tag.
         # Optional
         # Default: ''
         new_suffix: ''
+
+        # Removes the LAST_VERSION prefix when defining NEXT_VERSION
+        # Optional
+        # Default: 'false'
+        remove_prefix: 'false'
+
+        # Removes the LAST_VERSION suffix when defining NEXT_VERSION
+        # Optional
+        # Default: 'false'
+        remove_suffix: 'false'
 
         # Specifies the LAST_VERSION instead of seaching for the last matching tag
         # Optional
@@ -46,7 +81,7 @@ This GitHub Action determines the next version based on the last matching tag.
 ```yaml
     # Sets LAST_VERSION environment variable to last matching tag
     # Sets NEXT_VERSION environment variable to the next increment
-    - uses: rmeneely/git-next-version@v1.0.5
+    - uses: rmeneely/git-next-version@v1.0.7
       with:
         increment: 'minor'
 ```
