@@ -105,10 +105,31 @@ function get_last_version() { # Get last version tag
   git tag --sort=committerdate --list "${pattern}" | tail -1
 }
 
+function get_next_suffix() {
+  last_version="${1:-${LAST_VERSION}}"
+
+  # Split into prefix and suffix
+  prefix=`echo "${last_version}" | cut -d '-' -f 1`
+  suffix=`echo "${last_version}" | cut -d '-' -f 2`
+
+  # Split and increment the suffix
+  suffix1=`echo "${suffix}" | cut -d '.' -f 1`
+  suffix2=`echo "${suffix}" | cut -d '.' -f 2`
+  let suffix2+=1
+
+  echo "${prefix}-${suffix1}.${suffix2}"
+}
+
 function get_next_version() { # Return the next increment from the last version
   last_version="${1:-${LAST_VERSION}}"
   increment="${2:-${INCREMENT}}"
   increment=`echo "${increment}" | tr '[:upper:]' '[:lower:]'`
+
+  if [ "${INCREMENT}" = 'suffix' ]; then
+     next_version=`get_next_suffix "${last_version}"`
+     echo "${next_version}"
+     return
+  fi
 
   # Major and Prefix
   major=`echo ${last_version} | cut -d '.' -f 1`
@@ -244,10 +265,20 @@ function main() { # main function
 
   # Get the next version
   if [ "${NEXT_VERSION}" = '' ]; then
-     if [ "${AUTO_INCREMENT}" = 'true' ]; then # Determine next version based on commit messages
-        export NEXT_VERSION=`auto_increment_version "${LAST_VERSION}" "${AUTO_INCREMENT_MAJOR_VERSION_PATTERN}" "${AUTO_INCREMENT_MINOR_VERSION_PATTERN}" "${AUTO_INCREMENT_LIMIT}"`
-     else # Determine next version from increment value
-        export NEXT_VERSION=`get_next_version "${LAST_VERSION}" "${INCREMENT}"`
+     if [ "${INCREMENT}" != 'suffix' ]; then
+        if [ "${AUTO_INCREMENT}" = 'true' ]; then # Determine next version based on commit messages
+           export NEXT_VERSION=`auto_increment_version "${LAST_VERSION}" "${AUTO_INCREMENT_MAJOR_VERSION_PATTERN}" "${AUTO_INCREMENT_MINOR_VERSION_PATTERN}" "${AUTO_INCREMENT_LIMIT}"`
+        else # Determine next version from increment value
+           export NEXT_VERSION=`get_next_version "${LAST_VERSION}" "${INCREMENT}"`
+        fi
+     else # Increment suffix
+        #prefix=`echo "${LAST_VERSION}" | cut -d '-' -f 1`
+        #suffix=`echo "${LAST_VERSION}" | cut -d '-' -f 2`
+        #suffix1=`echo "${suffix}" | cut -d '.' -f 1`
+        #suffix2=`echo "${suffix}" | cut -d '.' -f 2`
+        #let suffix2+=1
+        #export NEXT_VERSION="${prefix}-${suffix1}.${suffix2}"
+        export NEXT_VERSION=`get_next_suffix "${LAST_VERSION}"`
      fi
   fi
   if [ "${SET_NEXT_VERSION_TAG}" = 'true' ]; then

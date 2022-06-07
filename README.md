@@ -15,7 +15,12 @@ The *set_next_version_tag* if set to 'false' will still set the NEXT_VERSION var
         # Default: 'v[0-9]*.[0-9]*.[0-9]*'
         tag_pattern: 'v[0-9]*.[0-9]*.[0-9]*'
 
-        # The version increment - major, minor, patch, none
+        # The version increment - major, minor, patch, suffix, none
+        # major - v1.2.3 -> v2.0.0
+        # minor - v1.2.3 -> v1.3.0
+        # patch - v1.2.3 -> v1.2.4
+        # suffix - v1.2.3-rc.1 -> v1.2.3-rc.2
+        # none - v1.2.3 -> v1.2.3
         # Optional
         # Default: patch
         increment: 'patch'
@@ -29,12 +34,12 @@ The *set_next_version_tag* if set to 'false' will still set the NEXT_VERSION var
 
         # Defines a pattern for matching major version commit
         # Optional
-        # Default: '*major*'
+        # Default: 'major|breaking|incompatible'
         auto_increment_major_version_pattern: 'major|breaking|incompatible'
 
         # Defines a pattern for matching minor version commit
         # Optional
-        # Default: '*minor*'
+        # Default: 'minor|feature'
         auto_increment_minor_version_pattern: 'minor|feature'
 
         # Defines an auto version increment limit commit
