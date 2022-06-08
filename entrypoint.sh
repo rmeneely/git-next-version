@@ -176,11 +176,12 @@ function get_next_version() { # Return the next increment from the last version
 
 # Commit pattern count
 function commit_pattern_count() {
-   last_version=$1
+   from_version=$1
    pattern=$2
+   to_version="${3:-'HEAD'}"
 
    # Determine the number of matching commits
-   count=`git log --pretty=oneline "${last_version}..HEAD" | sed 's/[a-zA-Z0-9]* //' | egrep -iwe "${pattern}" | wc -l`
+   count=`git log --pretty=oneline "${from_version}..${to_version}" | sed 's/[a-zA-Z0-9]* //' | egrep -iwe "${pattern}" | wc -l`
    echo $count
 }
 
