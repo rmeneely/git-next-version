@@ -5,20 +5,20 @@ Syntax='$program [-t <tag pattern>] [-i <increment>] [-p <new prefix> | -P] [-s 
 set -e
 
 # Defaults
-export TAG_PATTERN="${INPUT_TAG_PATTERN:-'v[0-9]*.[0-9]*.[0-9]*'}"
-export INCREMENT="${INPUT_INCREMENT:-'patch'}"
-export AUTO_INCREMENT="${INPUT_AUTO_INCREMENT:-'false'}"
-export AUTO_INCREMENT_MAJOR_VERSION_PATTERN="${INPUT_AUTO_INCREMENT_MAJOR_VERSION_PATTERN:-'major|breaking|incompatible'}"
-export AUTO_INCREMENT_MINOR_VERSION_PATTERN="${INPUT_AUTO_INCREMENT_MINOR_VERSION_PATTERN:-'minor|feature'}"
+export TAG_PATTERN="${INPUT_TAG_PATTERN:-v[0-9]*.[0-9]*.[0-9]*}"
+export INCREMENT="${INPUT_INCREMENT:-patch}"
+export AUTO_INCREMENT="${INPUT_AUTO_INCREMENT:-false}"
+export AUTO_INCREMENT_MAJOR_VERSION_PATTERN="${INPUT_AUTO_INCREMENT_MAJOR_VERSION_PATTERN:-major:|breaking:|incompatible:}"
+export AUTO_INCREMENT_MINOR_VERSION_PATTERN="${INPUT_AUTO_INCREMENT_MINOR_VERSION_PATTERN:-minor:|feature:}"
 export AUTO_INCREMENT_LIMIT="${INPUT_AUTO_INCREMENT_LIMIT:-'minor'}"
 export NEW_PREFIX="${INPUT_NEW_PREFIX:-}"
-export REMOVE_PREFIX="${INPUT_REMOVE_PREFIX:-'false'}"
+export REMOVE_PREFIX="${INPUT_REMOVE_PREFIX:-false}"
 export NEW_SUFFIX="${INPUT_NEW_SUFFIX:-}"
-export REMOVE_SUFFIX="${INPUT_REMOVE_SUFFIX:-'false'}"
+export REMOVE_SUFFIX="${INPUT_REMOVE_SUFFIX:-false}"
 export LAST_VERSION="${INPUT_LAST_VERSION:-}"
 export NEXT_VERSION="${INPUT_NEXT_VERSION:-}"
-export SET_NEXT_VERSION="${INPUT_SET_NEXT_VERSION_TAG:-'true'}"
-export VERBOSE="${INPUT_VERBOSE:-'false'}"
+export SET_NEXT_VERSION="${INPUT_SET_NEXT_VERSION_TAG:-true}"
+export VERBOSE="${INPUT_VERBOSE:-false}"
 
 # Add this git workspace as a safe directory
 # Required by GitHub Actions to enable this action to execute git commands
@@ -102,11 +102,16 @@ display_options() {
 
 function get_last_version() { # Get last version tag
   pattern="${1:-${TAG_PATTERN}}"
+  if [ "${VERBOSE}" = 'true' ]; then 
+     echo "get_last_version($pattern)" >&2
+     echo "  git tag --sort=committerdate --list ${pattern}" >&2 
+  fi
   git tag --sort=committerdate --list "${pattern}" | tail -1
 }
 
 function get_next_suffix() {
   last_version="${1:-${LAST_VERSION}}"
+  if [ "${VERBOSE}" = 'true' ]; then echo "get_next_suffix($last_version)" >&2 ; fi
 
   # Split into prefix and suffix
   prefix=`echo "${last_version}" | cut -d '-' -f 1`
@@ -124,6 +129,7 @@ function get_next_version() { # Return the next increment from the last version
   last_version="${1:-${LAST_VERSION}}"
   increment="${2:-${INCREMENT}}"
   increment=`echo "${increment}" | tr '[:upper:]' '[:lower:]'`
+  if [ "${VERBOSE}" = 'true' ]; then echo "get_next_version($last_version, $increment)" >&2 ; fi
 
   if [ "${INCREMENT}" = 'suffix' ]; then
      next_version=`get_next_suffix "${last_version}"`
@@ -176,13 +182,16 @@ function get_next_version() { # Return the next increment from the last version
 
 # Commit pattern count
 function commit_pattern_count() {
-   from_version=$1
-   pattern=$2
-   to_version="${3:-'HEAD'}"
+  from_version=$1
+  pattern=$2
+  to_version="${3:-HEAD}"
+  if [ "${VERBOSE}" = 'true' ]; then echo "commit_pattern_count($from_version, $pattern, $to_version)" >&2 ; fi
 
-   # Determine the number of matching commits
-   count=`git log --pretty=oneline "${from_version}..${to_version}" | sed 's/[a-zA-Z0-9]* //' | egrep -iwe "${pattern}" | wc -l`
-   echo $count
+  # Determine the number of matching commits
+  count=`git log --pretty=oneline "${from_version}..${to_version}" | sed 's/[a-zA-Z0-9]* //' | egrep -iwe "${pattern}" | wc -l`
+  count=`echo $count | sed 's/ //g'`
+  if [ "${VERBOSE}" = 'true' ]; then echo "  $count=git log --pretty=oneline ${from_version}..${to_version} | sed 's/[a-zA-Z0-9]* //' | egrep -iwe ${pattern} | wc -l" >&2 ; fi
+  echo $count
 }
 
 # Auto increment version
@@ -191,6 +200,7 @@ function auto_increment_version() {
    major_version_pattern="${2:-${AUTO_INCREMENT_MAJOR_VERSION_PATTERN}}"
    minor_version_pattern="${3:-${AUTO_INCREMENT_MINOR_VERSION_PATTERN}}"
    auto_increment_limit="${4:-${AUTO_INCREMENT_LIMIT}}"
+   if [ "${VERBOSE}" = 'true' ]; then echo "auto_increment_version($last_version, $major_version_pattern, $minor_version_pattern, $auto_increment_limit)" >&2 ; fi
    
    # Get count of matching commit types
    major_count=`commit_pattern_count "${last_version}" "${major_version_pattern}"`
@@ -224,22 +234,24 @@ function auto_increment_version() {
 }
 
 function set_next_version_tag() {
-   next_version="${1:-${NEXT_VERSION}}"
+  next_version="${1:-${NEXT_VERSION}}"
+  if [ "${VERBOSE}" = 'true' ]; then echo "set_next_version_tag($next_version)" >&2 ; fi
 
-   # Valid tag
-   valid=`echo ${next_version} | egrep -ice '^[a-zA-Z0-9]'`
-   if [ $valid -eq 0 ]; then
-      echo "Error: Invalid version tag: ${next_version}" >&2
-      exit 1
-   fi
+  # Valid tag
+  valid=`echo ${next_version} | egrep -ice '^[a-zA-Z0-9]'`
+  if [ $valid -eq 0 ]; then
+     echo "Error: Invalid version tag: ${next_version}" >&2
+     exit 1
+  fi
 
-   if [ "${next_version}" != '' ]; then
-      git tag "${next_version}"
-      git push --tags
-   fi
+  if [ "${next_version}" != '' ]; then
+     git tag "${next_version}"
+     git push --tags
+  fi
 }
 
 function output_versions() {
+  if [ "${VERBOSE}" = 'true' ]; then echo "output_versions()" >&2 ; fi
   if [ "${GITHUB_ENV}" !=  '' ]; then
      echo "LAST_VERSION=${LAST_VERSION}" >> $GITHUB_ENV
      echo "NEXT_VERSION=${NEXT_VERSION}" >> $GITHUB_ENV
@@ -250,8 +262,9 @@ function output_versions() {
 }
 
 function main() { # main function
-  if [ "${VERBOSE}" = 'true' ]; then
-     display_options
+  if [ "${VERBOSE}" = 'true' ]; then 
+     echo "main()" >&2
+     display_options >&2  
   fi
 
   # Get the last version 
@@ -262,7 +275,7 @@ function main() { # main function
      echo "Error: last version matching pattern ${TAG_PATTERN} not found" >&2
      exit 1
   fi
-  #if [ "${VERBOSE}" = 'true' ]; then echo "LAST_VERSION: $LAST_VERSION" ; fi
+  if [ "${VERBOSE}" = 'true' ]; then echo "main: LAST_VERSION: $LAST_VERSION" >&2 ; fi
 
   # Get the next version
   if [ "${NEXT_VERSION}" = '' ]; then
@@ -282,10 +295,10 @@ function main() { # main function
         export NEXT_VERSION=`get_next_suffix "${LAST_VERSION}"`
      fi
   fi
+  if [ "${VERBOSE}" = 'true' ]; then echo "main: NEXT_VERSION: $NEXT_VERSION" >&2 ; fi
   if [ "${SET_NEXT_VERSION_TAG}" = 'true' ]; then
      set_next_version_tag "${NEXT_VERSION}"
   fi
-  #if [ "${VERBOSE}" = 'true' ]; then echo "NEXT_VERSION: $NEXT_VERSION" ; fi
   
   # Output the versions
   output_versions
