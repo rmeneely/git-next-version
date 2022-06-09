@@ -163,7 +163,9 @@ function get_next_version() { # Return the next increment from the last version
   # Major and Prefix
   major=`echo ${last_version} | cut -d '.' -f 1`
   prefix=`echo ${major}|sed 's/[0-9][0-9]*$//'`
-  major=`echo $major | sed -e "s/$prefix//"`
+  if [ "$prefix" != '' ]; then
+     major=`echo $major | sed -e "s/$prefix//"`
+  fi
   if [ "${NEW_PREFIX}" != '' ]; then
      prefix=${NEW_PREFIX}
   fi
