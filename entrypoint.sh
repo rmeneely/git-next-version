@@ -18,7 +18,7 @@ export REMOVE_SUFFIX="${INPUT_REMOVE_SUFFIX:-false}"
 export LAST_VERSION="${INPUT_LAST_VERSION:-}"
 export NEXT_VERSION="${INPUT_NEXT_VERSION:-}"
 export SET_NEXT_VERSION="${INPUT_SET_NEXT_VERSION_TAG:-true}"
-export VERBOSE="${INPUT_VERBOSE:-false}"
+export VERBOSE="${INPUT_VERBOSE:-true}"
 
 # Add this git workspace as a safe directory
 # Required by GitHub Actions to enable this action to execute git commands
@@ -102,8 +102,8 @@ display_options() {
 
 function get_last_version() { # Get last version tag
   pattern="${1:-${TAG_PATTERN}}"
-  pattern="'${pattern}'"
-  pattern=`echo $pattern | sed -e 's/^\'\'/'/' -e 's/\'\'$/'/'` # Ensure there are only single quotes
+  #pattern="'${pattern}'"
+  #pattern=`echo $pattern | sed -e 's/^\'\'/'/' -e 's/\'\'$/'/'` # Ensure there are only single quotes
   cmd="git tag --sort=committerdate --list ${pattern} | tail -1"
   if [ "${VERBOSE}" = 'true' ]; then 
      echo "get_last_version($pattern)" >&2
