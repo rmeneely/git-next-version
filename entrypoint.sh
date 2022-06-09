@@ -5,12 +5,12 @@ Syntax='$program [-t <tag pattern>] [-i <increment>] [-p <new prefix> | -P] [-s 
 set -e
 
 # Defaults
-export TAG_PATTERN="${INPUT_TAG_PATTERN:-v[0-9]*.[0-9]*.[0-9]*}"
+export TAG_PATTERN="${INPUT_TAG_PATTERN:-'v[0-9]*.[0-9]*.[0-9]*'}"
 export INCREMENT="${INPUT_INCREMENT:-patch}"
 export AUTO_INCREMENT="${INPUT_AUTO_INCREMENT:-false}"
 export AUTO_INCREMENT_MAJOR_VERSION_PATTERN="${INPUT_AUTO_INCREMENT_MAJOR_VERSION_PATTERN:-major:|breaking:|incompatible:}"
 export AUTO_INCREMENT_MINOR_VERSION_PATTERN="${INPUT_AUTO_INCREMENT_MINOR_VERSION_PATTERN:-minor:|feature:}"
-export AUTO_INCREMENT_LIMIT="${INPUT_AUTO_INCREMENT_LIMIT:-'minor'}"
+export AUTO_INCREMENT_LIMIT="${INPUT_AUTO_INCREMENT_LIMIT:-minor}"
 export NEW_PREFIX="${INPUT_NEW_PREFIX:-}"
 export REMOVE_PREFIX="${INPUT_REMOVE_PREFIX:-false}"
 export NEW_SUFFIX="${INPUT_NEW_SUFFIX:-}"
@@ -102,7 +102,9 @@ display_options() {
 
 function get_last_version() { # Get last version tag
   pattern="${1:-${TAG_PATTERN}}"
-  cmd="git tag --sort=committerdate --list '${pattern}' | tail -1"
+  pattern="'${pattern}'"
+  pattern=`echo $pattern | sed -e 's/^\'\'/'/' -e 's/\'\'$/'/'` # Ensure there are only single quotes
+  cmd="git tag --sort=committerdate --list ${pattern} | tail -1"
   if [ "${VERBOSE}" = 'true' ]; then 
      echo "get_last_version($pattern)" >&2
      echo "  $cmd" >&2 
