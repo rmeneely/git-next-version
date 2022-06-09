@@ -90,7 +90,7 @@ display_options() {
   echo "AUTO_INCREMENT_MAJOR_VERSION_PATTERN=$AUTO_INCREMENT_MAJOR_VERSION_PATTERN"
   echo "AUTO_INCREMENT_MINOR_VERSION_PATTERN=$AUTO_INCREMENT_MINOR_VERSION_PATTERN"
   echo "AUTO_INCREMENT_LIMIT=$AUTO_INCREMENT_LIMIT"
-  echo "REMOVE_PREFIX=INPUT_NEW_PREFIX=$NEW_PREFIX"
+  echo "NEW_PREFIX=$NEW_PREFIX"
   echo "REMOVE_PREFIX=$REMOVE_PREFIX"
   echo "NEW_SUFFIX=$NEW_SUFFIX"
   echo "REMOVE_SUFFIX=$REMOVE_SUFFIX"
@@ -98,6 +98,23 @@ display_options() {
   echo "NEXT_VERSION=$NEXT_VERSION"
   echo "SET_NEXT_VERSION_TAG=$SET_NEXT_VERSION_TAG"
   echo ""
+}
+
+sanitize_parameters() {
+  TAG_PATTERN=`echo "$TAG_PATTERN" | sed -e "s/^'//" -e "s/'$//"`
+  TAG_PATTERN="'$TAG_PATTERN'"
+  INCREMENT=`echo "$INCREMENT" | sed -e "s/^'//" -e "s/'$//"`
+  AUTO_INCREMENT=`echo "$AUTO_INCREMENT"| sed -e "s/^'//" -e "s/'$//"`
+  AUTO_INCREMENT_MAJOR_VERSION_PATTERN=`echo "$AUTO_INCREMENT_MAJOR_VERSION_PATTERN"| sed -e "s/^'//" -e "s/'$//"`
+  AUTO_INCREMENT_MINOR_VERSION_PATTERN=`echo "$AUTO_INCREMENT_MINOR_VERSION_PATTERN"| sed -e "s/^'//" -e "s/'$//"`
+  AUTO_INCREMENT_LIMIT=`echo "$AUTO_INCREMENT_LIMIT"| sed -e "s/^'//" -e "s/'$//"`
+  REMOVE_PREFIX=`echo "$NEW_PREFIX"| sed -e "s/^'//" -e "s/'$//"`
+  REMOVE_PREFIX=`echo "$REMOVE_PREFIX"| sed -e "s/^'//" -e "s/'$//"`
+  NEW_SUFFIX=`echo "$NEW_SUFFIX"| sed -e "s/^'//" -e "s/'$//"`
+  REMOVE_SUFFIX=`echo "$REMOVE_SUFFIX"| sed -e "s/^'//" -e "s/'$//"`
+  LAST_VERSION=`echo "$LAST_VERSION"| sed -e "s/^'//" -e "s/'$//"`
+  NEXT_VERSION=`echo "$NEXT_VERSION"| sed -e "s/^'//" -e "s/'$//"`
+  SET_NEXT_VERSION_TAG=`echo "$SET_NEXT_VERSION_TAG"| sed -e "s/^'//" -e "s/'$//"`
 }
 
 function get_last_version() { # Get last version tag
@@ -265,6 +282,7 @@ function output_versions() {
 }
 
 function main() { # main function
+  sanitize_parameters
   if [ "${VERBOSE}" = 'true' ]; then 
      echo "main()" >&2
      display_options >&2  
