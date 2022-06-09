@@ -18,7 +18,7 @@ export REMOVE_SUFFIX="${INPUT_REMOVE_SUFFIX:-false}"
 export LAST_VERSION="${INPUT_LAST_VERSION:-}"
 export NEXT_VERSION="${INPUT_NEXT_VERSION:-}"
 export SET_NEXT_VERSION="${INPUT_SET_NEXT_VERSION_TAG:-true}"
-export VERBOSE="${INPUT_VERBOSE:-true}"
+export VERBOSE="${INPUT_VERBOSE:-false}"
 
 # Add this git workspace as a safe directory
 # Required by GitHub Actions to enable this action to execute git commands
@@ -269,6 +269,7 @@ function main() { # main function
      echo "main()" >&2
      display_options >&2  
   fi
+  display_options
 
   # Get the last version 
   if [ "${LAST_VERSION}" = '' ]; then
