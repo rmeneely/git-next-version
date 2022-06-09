@@ -101,12 +101,15 @@ display_options() {
 }
 
 sanitize_parameters() {
+  # Cleanup of input parameter format
   TAG_PATTERN=`echo "$TAG_PATTERN" | sed -e "s/^'//" -e "s/'$//"`
   TAG_PATTERN="'$TAG_PATTERN'"
   INCREMENT=`echo "$INCREMENT" | sed -e "s/^'//" -e "s/'$//"`
   AUTO_INCREMENT=`echo "$AUTO_INCREMENT"| sed -e "s/^'//" -e "s/'$//"`
   AUTO_INCREMENT_MAJOR_VERSION_PATTERN=`echo "$AUTO_INCREMENT_MAJOR_VERSION_PATTERN"| sed -e "s/^'//" -e "s/'$//"`
+  AUTO_INCREMENT_MAJOR_VERSION_PATTERN="'$AUTO_INCREMENT_MAJOR_VERSION_PATTERN'"
   AUTO_INCREMENT_MINOR_VERSION_PATTERN=`echo "$AUTO_INCREMENT_MINOR_VERSION_PATTERN"| sed -e "s/^'//" -e "s/'$//"`
+  AUTO_INCREMENT_MINOR_VERSION_PATTERN="'$AUTO_INCREMENT_MINOR_VERSION_PATTERN'"
   AUTO_INCREMENT_LIMIT=`echo "$AUTO_INCREMENT_LIMIT"| sed -e "s/^'//" -e "s/'$//"`
   REMOVE_PREFIX=`echo "$NEW_PREFIX"| sed -e "s/^'//" -e "s/'$//"`
   REMOVE_PREFIX=`echo "$REMOVE_PREFIX"| sed -e "s/^'//" -e "s/'$//"`
