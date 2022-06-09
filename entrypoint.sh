@@ -103,8 +103,8 @@ display_options() {
 function get_last_version() { # Get last version tag
   pattern="${1:-${TAG_PATTERN}}"
   #pattern=`echo $pattern | sed -e "s/^\'/'/' -e 's/\'$/'/"` # Ensure there are only single quotes
-  git fetch -tag
-  cmd="git tag --sort=committerdate --list '${pattern}' | tail -1"
+  git fetch --tags
+  cmd="git tag --sort=committerdate --list ${pattern} | tail -1"
   if [ "${VERBOSE}" = 'true' ]; then 
      echo "get_last_version($pattern)" >&2
      echo "  $cmd" >&2 
