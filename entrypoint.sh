@@ -269,7 +269,6 @@ function main() { # main function
      echo "main()" >&2
      display_options >&2  
   fi
-  display_options
 
   # Get the last version 
   if [ "${LAST_VERSION}" = '' ]; then
