@@ -48,7 +48,7 @@ The *set_next_version_tag* if set to 'false' will still set the NEXT_VERSION var
         # minor version increment instead of a major version increment.
         # Optional
         # Default: 'minor'
-        auto_increment_minor_version_pattern: 'minor'
+        auto_increment_limit: 'minor'
 
         # A prefix to use on the NEXT_VERSION. If not specified the existing LAST_VERSION prefix will be used.
         # Optional
