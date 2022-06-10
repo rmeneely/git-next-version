@@ -64,6 +64,12 @@ inputs:
 outputs:
   image:
     description: 'LAST_VERSION=<last version> and NEXT_VERSION=<next version> which can be used to set environment variables'
+  last_version:
+    description: 'The LAST_VERSION'
+    value: ${{ steps.get-next-version.outputs.last_version }}
+  next_version:
+    description: 'The NEXT_VERSION'
+    value: ${{ steps.get-next-version.outputs.next_version }}
 runs:
   using: docker
   image: Dockerfile

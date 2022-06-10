@@ -279,7 +279,9 @@ function output_versions() {
   if [ "${VERBOSE}" = 'true' ]; then echo "output_versions()" >&2 ; fi
   if [ "${GITHUB_ENV}" !=  '' ]; then
      echo "LAST_VERSION=${LAST_VERSION}" >> $GITHUB_ENV
+     echo "::set-output name=last_version::${LAST_VERSION}"
      echo "NEXT_VERSION=${NEXT_VERSION}" >> $GITHUB_ENV
+     echo "::set-output name=next_version::${NEXT_VERSION}"
   else
      echo "LAST_VERSION=${LAST_VERSION}"
      echo "NEXT_VERSION=${NEXT_VERSION}"
@@ -312,12 +314,6 @@ function main() { # main function
            export NEXT_VERSION=`get_next_version "${LAST_VERSION}" "${INCREMENT}"`
         fi
      else # Increment suffix
-        #prefix=`echo "${LAST_VERSION}" | cut -d '-' -f 1`
-        #suffix=`echo "${LAST_VERSION}" | cut -d '-' -f 2`
-        #suffix1=`echo "${suffix}" | cut -d '.' -f 1`
-        #suffix2=`echo "${suffix}" | cut -d '.' -f 2`
-        #let suffix2+=1
-        #export NEXT_VERSION="${prefix}-${suffix1}.${suffix2}"
         export NEXT_VERSION=`get_next_suffix "${LAST_VERSION}"`
      fi
   fi
