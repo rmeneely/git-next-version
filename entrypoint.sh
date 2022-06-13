@@ -8,8 +8,8 @@ set -e
 export TAG_PATTERN="${INPUT_TAG_PATTERN:-'v[0-9]*.[0-9]*.[0-9]*'}"
 export INCREMENT="${INPUT_INCREMENT:-patch}"
 export AUTO_INCREMENT="${INPUT_AUTO_INCREMENT:-false}"
-export AUTO_INCREMENT_MAJOR_VERSION_PATTERN="${INPUT_AUTO_INCREMENT_MAJOR_VERSION_PATTERN:-^(major:|breaking|incompatible):}"
-export AUTO_INCREMENT_MINOR_VERSION_PATTERN="${INPUT_AUTO_INCREMENT_MINOR_VERSION_PATTERN:-^(minor|feature):}"
+export AUTO_INCREMENT_MAJOR_VERSION_PATTERN="${INPUT_AUTO_INCREMENT_MAJOR_VERSION_PATTERN:-major:|breaking:|incompatible:}"
+export AUTO_INCREMENT_MINOR_VERSION_PATTERN="${INPUT_AUTO_INCREMENT_MINOR_VERSION_PATTERN:-minor:|feature:}"
 export AUTO_INCREMENT_LIMIT="${INPUT_AUTO_INCREMENT_LIMIT:-minor}"
 export NEW_PREFIX="${INPUT_NEW_PREFIX:-}"
 export REMOVE_PREFIX="${INPUT_REMOVE_PREFIX:-false}"
@@ -111,7 +111,7 @@ sanitize_parameters() {
   AUTO_INCREMENT_MINOR_VERSION_PATTERN=`echo "$AUTO_INCREMENT_MINOR_VERSION_PATTERN"| sed -e "s/^'//" -e "s/'$//"`
   AUTO_INCREMENT_MINOR_VERSION_PATTERN="'$AUTO_INCREMENT_MINOR_VERSION_PATTERN'"
   AUTO_INCREMENT_LIMIT=`echo "$AUTO_INCREMENT_LIMIT"| sed -e "s/^'//" -e "s/'$//"`
-  REMOVE_PREFIX=`echo "$NEW_PREFIX"| sed -e "s/^'//" -e "s/'$//"`
+  NEW_PREFIX=`echo "$NEW_PREFIX"| sed -e "s/^'//" -e "s/'$//"`
   REMOVE_PREFIX=`echo "$REMOVE_PREFIX"| sed -e "s/^'//" -e "s/'$//"`
   NEW_SUFFIX=`echo "$NEW_SUFFIX"| sed -e "s/^'//" -e "s/'$//"`
   REMOVE_SUFFIX=`echo "$REMOVE_SUFFIX"| sed -e "s/^'//" -e "s/'$//"`
@@ -146,6 +146,22 @@ function get_next_suffix() {
   let suffix2+=1
 
   echo "${prefix}-${suffix1}.${suffix2}"
+}
+
+function new_prefix() { # Return the version with a new prefix
+  version="$1"
+  new_prefix=$2
+
+  new_version=`echo $version | sed -e 's/^[^0-9]*//'` # Strip leading non digit characters
+  echo "${new_prefix}${new_version}"
+}
+
+function new_suffix() { # Return the version with a new suffix
+  version="$1"
+  new_suffix=$2
+
+  new_version=`echo $version | sed -e 's/-[^-]*$/-/'` # Strip trailing characters after '-'
+  echo "${new_version}${new_suffix}"
 }
 
 function get_next_version() { # Return the next increment from the last version
@@ -310,6 +326,21 @@ function main() { # main function
      if [ "${INCREMENT}" != 'suffix' ]; then
         if [ "${AUTO_INCREMENT}" = 'true' ]; then # Determine next version based on commit messages
            export NEXT_VERSION=`auto_increment_version "${LAST_VERSION}" "${AUTO_INCREMENT_MAJOR_VERSION_PATTERN}" "${AUTO_INCREMENT_MINOR_VERSION_PATTERN}" "${AUTO_INCREMENT_LIMIT}"`
+        elif [ "${INCREMENT}" = 'none' ]; then # Determine set next version to last version
+          tmp_version="${LAST_VERSION}"
+          if [ "${NEW_PREFIX}" != '' ]; then
+             tmp_version=`new_prefix "${tmp_version}" "${NEW_PREFIX}"`
+          fi
+          if [ "${REMOVE_PREFIX}" = 'true' ]; then
+             tmp_version=`new_prefix "${tmp_version}" "${NEW_PREFIX}"`
+          fi
+          if [ "${NEW_SUFFIX}" != '' ]; then
+             tmp_version=`new_suffix "${tmp_version}" "${NEW_SUFFIX}"`
+          fi
+          if [ "${REMOVE_SUFFIX}" = 'true' ]; then
+             tmp_version=`new_suffix "${tmp_version}" "${NEW_SUFFIX}"`
+          fi
+          export NEXT_VERSION="${tmp_version}"
         else # Determine next version from increment value
            export NEXT_VERSION=`get_next_version "${LAST_VERSION}" "${INCREMENT}"`
         fi
