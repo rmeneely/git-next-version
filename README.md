@@ -34,13 +34,13 @@ The *set_next_version_tag* if set to 'false' will still set the NEXT_VERSION var
 
         # Defines a pattern for matching major version commit
         # Optional
-        # Default: '^(major|breaking|incompatible):'
-        auto_increment_major_version_pattern: '^(major|breaking|incompatible):'
+        # Default: 'major:|breaking:|incompatible:'
+        auto_increment_major_version_pattern: 'major:|breaking:|incompatible:'
 
         # Defines a pattern for matching minor version commit
         # Optional
-        # Default: '^(minor|feature):'
-        auto_increment_minor_version_pattern: '^(minor|feature):'
+        # Default: 'minor|feature:'
+        auto_increment_minor_version_pattern: 'minor:|feature:'
 
         # Defines an auto version increment limit commit
         # If a major version commit is matched, but the increment
