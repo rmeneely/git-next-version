@@ -226,13 +226,10 @@ function commit_pattern_count() {
   from_version=$1
   pattern=$2
   to_version="${3:-HEAD}"
-  if [ "${VERBOSE}" = 'true' ]; then echo "commit_pattern_count($from_version, $pattern, $to_version)" >&2 ; fi
 
   # Determine the number of matching commits
-  count=`git log --pretty=oneline "${from_version}..${to_version}" | sed 's/[a-zA-Z0-9]* //' | egrep -iwe "${pattern}" | wc -l`
-  count=`echo $count | sed 's/ //g'`
-  if [ "${VERBOSE}" = 'true' ]; then echo "  $count=git log --pretty=oneline ${from_version}..${to_version} | sed 's/[a-zA-Z0-9]* //' | egrep -iwe ${pattern} | wc -l" >&2 ; fi
-  echo $count
+  cmd="git log --pretty=oneline ${from_version}..${to_version} | sed 's/[a-zA-Z0-9]* //' | egrep -iwe ${pattern} | wc -l"
+  eval ${cmd}
 }
 
 # Auto increment version
