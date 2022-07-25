@@ -57,13 +57,7 @@ inputs:
     description: Create a version tag of NEXT_VERSION
     default: 'true'
     required: false
-  verbose:
-    description: Turns on verbose output
-    default: 'false'
-    required: false
 outputs:
-  image:
-    description: 'LAST_VERSION=<last version> and NEXT_VERSION=<next version> which can be used to set environment variables'
   last_version:
     description: 'The LAST_VERSION'
     value: ${{ steps.get-next-version.outputs.last_version }}
@@ -71,5 +65,22 @@ outputs:
     description: 'The NEXT_VERSION'
     value: ${{ steps.get-next-version.outputs.next_version }}
 runs:
-  using: docker
-  image: Dockerfile
+  using: "composite"
+  steps:
+    - id: git-next-version
+      run: ${{ github.action_path }}/git-next-version.sh
+      shell: bash
+      env: 
+        INPUT_TAG_PATTERN: ${{ inputs.tag_pattern }}
+        INPUT_INCREMENT: ${{ inputs.increment }}
+        INPUT_AUTO_INCREMENT: ${{ inputs.auto_increment }}
+        INPUT_AUTO_INCREMENT_MAJOR_VERSION_PATTERN: ${{ inputs.auto_increment_major_version_pattern }}
+        INPUT_AUTO_INCREMENT_MINOR_VERSION_PATTERN: ${{ inputs.auto_increment_minor_version_pattern }}
+        INPUT_AUTO_INCREMENT_LIMIT: ${{ inputs.auto_increment_limit }}
+        INPUT_NEW_PREFIX: ${{ inputs.new_prefix }}
+        INPUT_REMOVE_PREFIX: ${{ inputs.remove_prefix }}
+        INPUT_NEW_SUFFIX: ${{ inputs.new_suffix }}
+        INPUT_REMOVE_SUFFIX: ${{ inputs.remove_suffix }}
+        INPUT_LAST_VERSION: ${{ inputs.last_version }}
+        INPUT_NEXT_VERSION: ${{ inputs.next_version }}
+        INPUT_SET_NEXT_VERSION_TAG: ${{ inputs.set_next_version_tag }}
