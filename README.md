@@ -3,7 +3,7 @@ This GitHub Action determines the next version based on the last matching tag. I
 
 It will then increment the LAST_VERSION by either a specified INCREMENT or by matching git commit messsages if *auto_increment* is set to 'true', setting the ${{ env.NEXT_VERSION }} environment variable.
 
-The *set_next_version_tag* if set to 'false' will still set the NEXT_VERSION variable, but will not create a matching git tag. Additional options can override the default behavior as specified below.
+The *set_next_version_tag* if set to 'true' will set the NEXT_VERSION variable, and will create a matching git tag. Additional options can override the default behavior as specified below.
 
 
 ## Usage
@@ -83,7 +83,7 @@ The *set_next_version_tag* if set to 'false' will still set the NEXT_VERSION var
         # Create a version tag of NEXT_VERSION
         # Optional
         # Default: 'false'
-        set_next_version_tag: 'true'
+        set_next_version_tag: 'false'
 ```
 
 ## Examples
