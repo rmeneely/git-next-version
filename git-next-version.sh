@@ -17,7 +17,7 @@ export NEW_SUFFIX="${INPUT_NEW_SUFFIX:-}"
 export REMOVE_SUFFIX="${INPUT_REMOVE_SUFFIX:-false}"
 export LAST_VERSION="${INPUT_LAST_VERSION:-}"
 export NEXT_VERSION="${INPUT_NEXT_VERSION:-}"
-export SET_NEXT_VERSION="${INPUT_SET_NEXT_VERSION_TAG:-true}"
+export SET_NEXT_VERSION="${INPUT_SET_NEXT_VERSION_TAG:-false}"
 export VERBOSE="${INPUT_VERBOSE:-false}"
 
 # Add this git workspace as a safe directory

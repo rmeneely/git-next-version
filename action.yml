@@ -55,7 +55,7 @@ inputs:
     required: false
   set_next_version_tag:
     description: Create a version tag of NEXT_VERSION
-    default: 'true'
+    default: 'false'
     required: false
 outputs:
   last_version:

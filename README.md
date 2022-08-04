@@ -82,7 +82,7 @@ The *set_next_version_tag* if set to 'false' will still set the NEXT_VERSION var
 
         # Create a version tag of NEXT_VERSION
         # Optional
-        # Default: 'true'
+        # Default: 'false'
         set_next_version_tag: 'true'
 ```
 
@@ -134,11 +134,11 @@ The *set_next_version_tag* if set to 'false' will still set the NEXT_VERSION var
 ```yaml
     # Sets LAST_VERSION environment variable 'v1.2.3' instead of searching for a matching the version tag
     # Sets NEXT_VERSION environment variable to the next default increment (patch)
-    # Does not create a NEXT_VERSION git tag
+    # Creates a NEXT_VERSION git tag
     - uses: rmeneely/git-next-version@v1
       with:
         last_version: 'v1.2.3'
-        set_next_version_tag: 'false'
+        set_next_version_tag: 'true'
 ```
 
 ## Output
