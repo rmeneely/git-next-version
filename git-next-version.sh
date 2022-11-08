@@ -292,9 +292,9 @@ function output_versions() {
   if [ "${VERBOSE}" = 'true' ]; then echo "output_versions()" >&2 ; fi
   if [ "${GITHUB_ENV}" !=  '' ]; then
      echo "LAST_VERSION=${LAST_VERSION}" >> $GITHUB_ENV
-     echo "::set-output name=last_version::${LAST_VERSION}"
+     echo "last_version=${LAST_VERSION}" >> $GITHUB_OUTPUT
      echo "NEXT_VERSION=${NEXT_VERSION}" >> $GITHUB_ENV
-     echo "::set-output name=next_version::${NEXT_VERSION}"
+     echo "next_version=${NEXT_VERSION}" >> $GITHUB_OUTPUT
   else
      echo "LAST_VERSION=${LAST_VERSION}"
      echo "NEXT_VERSION=${NEXT_VERSION}"
